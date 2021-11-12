@@ -90,7 +90,7 @@ async function processSite (config) {
     const pages = getPages(site, sitemap)
       .filter(page => config.pages.valid(`/${page}`))
 
-    const pageContents = await Promise.all(pages.map(page => getPage(site, page, timestamp)))
+    const pageContents = await Promise.all(pages.map(page => getPage(site, page, timestamp)).filter( page => page === undefined ))
 
     for (const { page, html } of pageContents) {
       await assurePathExists(page)
@@ -103,12 +103,12 @@ async function processSite (config) {
 
 async function getPage (site, page, timestamp) {
   try {
-    let html = await retry(() => fetchPage(`${site}/${page}`, timestamp), RETRY_COUNT)
-    html = formatHTML(html)
+    let html = await retry(() => fetchPage(`${site}${page}`, timestamp), RETRY_COUNT)
+    //html = formatHTML(html)
     return { page, html }
   } catch (error) {
     console.error(`Failed getting page ${page}: ${error.message}`)
-    throw error
+    //throw error
   }
 }
 
@@ -116,13 +116,13 @@ async function fetchPage (url, expectedTimestamp = null) {
   const response = await fetch(url)
 
   if (!response.ok) {
-    throw new Error(`${response.status}: ${response.statusText}`)
+    throw new Error(`Error fetching: ${url} ${response.status}: ${response.statusText}`)
   }
 
   const body = await response.text()
 
-  const timestamp = getTimestampFromHTML(body)
-  checkTimestamp(timestamp, expectedTimestamp)
+  //const timestamp = getTimestampFromHTML(body)
+  //checkTimestamp(timestamp, expectedTimestamp)
 
   return body
 }
@@ -142,7 +142,7 @@ async function fetchCSS (url, expectedTimestamp = null) {
   const response = await fetch(url)
 
   if (!response.ok) {
-    throw new Error(`${response.status}: ${response.statusText}`)
+    throw new Error(`Error fetching: ${url} ${response.status}: ${response.statusText}`)
   }
 
   const css = await response.text()
@@ -171,7 +171,7 @@ function getPages (site, sitemap) {
   let pages = [...sitemap.matchAll(/<loc>(.*)<\/loc>/g)]
 
   pages = pages.map(m => m[1])
-    .map(url => url.substring(site.length).replace(/^\/|\/$/g, ''))
+    .map(url => url.substring(site.length + 4).replace(/^\/|\/$/g, ''))
     .filter(page => page)
 
   return pages

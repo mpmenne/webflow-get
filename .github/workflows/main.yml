@@ -1,0 +1,17 @@
+name: webflow-get
+
+on: push
+
+jobs:
+  track:
+    name: Track Webflow site changes
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Process Webflow Site
+        uses: loomchild/webflow-get@v1
+
